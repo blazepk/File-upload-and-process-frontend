@@ -49,16 +49,16 @@ function Mapper({ sharedHeaders }: Props) {
   console.log("test", { newHeaderSchema });
 
   useEffect(() => {
-    setMappings(createMappings(newHeaderSchema));
-  }, [newHeaderSchema]);
+    setMappings(createMappings(sharedHeaders));
+  }, [sharedHeaders]);
 
   const options = useMemo(
     () =>
-      newHeaders?.map((item: string) => ({
+      newHeaderSchema?.map((item: string) => ({
         value: item,
         displayValue: item,
       })),
-    [newHeaders]
+    [newHeaderSchema]
   );
   const mapperOptions = useMemo(
     () => [
@@ -160,82 +160,84 @@ function Mapper({ sharedHeaders }: Props) {
     setDataMapped(modifiedMappedArr);
   };
 
-  if (newHeaderSchema?.length === 0) return;
-  <div className={classNames("py-12 space-y-6")}>
-    <p className="text-xl font-medium text-gray-100 bg-gray-900 px-4 py-2 rounded-lg">
-      Create mapping
-    </p>
-    <div>
-      {sharedHeaders?.map((item: string) => (
-        <MapperRow
-          key={item}
-          item={item}
-          mapperOptions={mapperOptions}
-          options={options}
-          setMappings={setMappings}
-        />
-      ))}
+  if (newHeaderSchema?.length === 0) return null;
+  return (
+    <div className={classNames("py-12 space-y-6")}>
+      <p className="text-xl font-medium text-gray-100 bg-gray-900 px-4 py-2 rounded-lg">
+        Create mapping
+      </p>
+      <div>
+        {sharedHeaders?.map((item: string) => (
+          <MapperRow
+            key={item}
+            item={item}
+            mapperOptions={mapperOptions}
+            options={options}
+            setMappings={setMappings}
+          />
+        ))}
+      </div>
+      <button
+        onClick={handleMapping}
+        type="button"
+        className="block w-40 ml-auto rounded-md bg-indigo-700 disabled:pointer-events-none disabled:opacity-50 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700"
+      >
+        Map Values
+      </button>
+      {dataMapped.length > 0 && (
+        <table className="min-w-full border border-collapse border-gray-300">
+          <thead className="bg-gray-200">
+            <tr>
+              {Object.keys(dataMapped[0] || {}).map((header, index) => (
+                <th
+                  key={index}
+                  className="py-2 px-4 border-b border-r font-semibold text-sm"
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {dataMapped.map((row: any, rowIndex: number) => {
+              //   if (Array.isArray(Object.values(row))) {
+              //     return Object.values(row).map((rowData, index) => (
+              //       <tr
+              //         key={rowIndex}
+              //         className={rowIndex % 2 === 0 ? "bg-gray-100" : ""}
+              //       >
+              //         {Object.values(row).map((value: any, columnIndex) => (
+              //           <td
+              //             key={columnIndex}
+              //             className="py-2 px-4 border-b border-r text-sm text-center"
+              //           >
+              //             {value[index]}
+              //           </td>
+              //         ))}
+              //       </tr>
+              //     ));
+              //   }
+              return (
+                <tr
+                  key={rowIndex}
+                  className={rowIndex % 2 === 0 ? "bg-gray-100" : ""}
+                >
+                  {Object.values(row).map((value: any, columnIndex) => (
+                    <td
+                      key={columnIndex}
+                      className="py-2 px-4 border-b border-r text-sm text-center"
+                    >
+                      {value}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
-    <button
-      onClick={handleMapping}
-      type="button"
-      className="block w-40 ml-auto rounded-md bg-indigo-700 disabled:pointer-events-none disabled:opacity-50 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700"
-    >
-      Map Values
-    </button>
-    {dataMapped.length > 0 && (
-      <table className="min-w-full border border-collapse border-gray-300">
-        <thead className="bg-gray-200">
-          <tr>
-            {Object.keys(dataMapped[0] || {}).map((header, index) => (
-              <th
-                key={index}
-                className="py-2 px-4 border-b border-r font-semibold text-sm"
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {dataMapped.map((row: any, rowIndex: number) => {
-            //   if (Array.isArray(Object.values(row))) {
-            //     return Object.values(row).map((rowData, index) => (
-            //       <tr
-            //         key={rowIndex}
-            //         className={rowIndex % 2 === 0 ? "bg-gray-100" : ""}
-            //       >
-            //         {Object.values(row).map((value: any, columnIndex) => (
-            //           <td
-            //             key={columnIndex}
-            //             className="py-2 px-4 border-b border-r text-sm text-center"
-            //           >
-            //             {value[index]}
-            //           </td>
-            //         ))}
-            //       </tr>
-            //     ));
-            //   }
-            return (
-              <tr
-                key={rowIndex}
-                className={rowIndex % 2 === 0 ? "bg-gray-100" : ""}
-              >
-                {Object.values(row).map((value: any, columnIndex) => (
-                  <td
-                    key={columnIndex}
-                    className="py-2 px-4 border-b border-r text-sm text-center"
-                  >
-                    {value}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    )}
-  </div>;
+  );
 }
 
 const MapperRow: React.FC<RowProps> = ({
