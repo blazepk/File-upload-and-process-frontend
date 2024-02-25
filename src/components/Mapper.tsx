@@ -1,35 +1,76 @@
-import { useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import Select from "./common/Select";
+import { TableContext } from "../context/TableDataContext";
 
 type Props = {
-  sharedHeaders: any[] | null;
+  sharedHeaders: string[] | null;
+};
+interface IOption {
+  value: string;
+  displayValue: string;
+}
+type RowProps = {
+  item: string;
+  options: IOption[] | undefined;
+  mapperOptions: IOption[] | undefined;
+  setMappings: React.Dispatch<React.SetStateAction<TMapping[] | undefined>>;
+};
+
+type TMapping = {
+  item: string;
+  mapsTo: string;
+  mapType: string;
+};
+
+const createMappings = (headers: string[] | null) => {
+  return headers?.map((item: string) => ({
+    item,
+    mapsTo: "",
+    mapType: "",
+  }));
 };
 
 function Mapper({ sharedHeaders }: Props) {
-  const options = sharedHeaders?.map((item: string) => ({
-    value: item,
-    displayValue: item,
-  }));
-  const mapperOptions = [
-    {
-      value: "single",
-      displayValue: "Single",
-    },
-    {
-      value: "multiple",
-      displayValue: "Multiple",
-    },
-  ];
+  const [mappings, setMappings] = useState<TMapping[] | undefined>([]);
+  const { uploadData } = useContext(TableContext) as any;
+  console.log("mappings", mappings);
 
+  useEffect(() => {
+    setMappings(createMappings(sharedHeaders));
+  }, [sharedHeaders]);
+
+  const options = useMemo(
+    () =>
+      sharedHeaders?.map((item: string) => ({
+        value: item,
+        displayValue: item,
+      })),
+    [sharedHeaders]
+  );
+  const mapperOptions = useMemo(
+    () => [
+      {
+        value: "single",
+        displayValue: "Single",
+      },
+      {
+        value: "multiple",
+        displayValue: "Multiple",
+      },
+    ],
+    []
+  );
   const handleMapping = () => {};
   return (
     <div className="m-4">
       <div>
         {sharedHeaders?.map((item: string) => (
           <MapperRow
+            key={item}
             item={item}
             mapperOptions={mapperOptions}
             options={options}
+            setMappings={setMappings}
           />
         ))}
       </div>
@@ -44,27 +85,54 @@ function Mapper({ sharedHeaders }: Props) {
   );
 }
 
-type RowProps = {
-  item: string;
-  options: IOption[] | undefined;
-  mapperOptions: IOption[] | undefined;
-};
-interface IOption {
-  value: string;
-  displayValue: string;
-}
-
-const MapperRow = ({ item, options, mapperOptions }: RowProps) => {
-  const [mapping, setMapping] = useState<any>({
-    item: "",
-    mapsTo: "",
-    mapType: "",
-  });
+const MapperRow: React.FC<RowProps> = ({
+  item,
+  options,
+  mapperOptions,
+  setMappings,
+}) => {
+  //   const [mapping, setMapping] = useState<TMapping>({
+  //     item,
+  //     mapsTo: "",
+  //     mapType: "",
+  //   });
+  const handleField = useCallback((e: React.ChangeEvent) => {
+    setMappings((prev) => {
+      return prev?.map((mapping) => {
+        if (mapping.item === item) {
+          const updatedMappedValue = mapping;
+          updatedMappedValue.mapsTo = (e.target as HTMLSelectElement).value;
+          return updatedMappedValue;
+        }
+        return mapping;
+      });
+    });
+  }, []);
+  const handleType = useCallback((e: React.ChangeEvent) => {
+    setMappings((prev) => {
+      return prev?.map((mapping) => {
+        if (mapping.item === item) {
+          const updatedMappedValue = mapping;
+          updatedMappedValue.mapType = (e.target as HTMLSelectElement).value;
+          return updatedMappedValue;
+        }
+        return mapping;
+      });
+    });
+  }, []);
   return (
     <div className="p-2 grid grid-cols-3 gap-x-3">
       <div>{item}</div>
-      <Select label={"Select a field"} options={options} />
-      <Select label={"Select a MapperType"} options={mapperOptions} />
+      <Select
+        label={"Select a field"}
+        options={options}
+        handleChange={handleField}
+      />
+      <Select
+        label={"Select a MapperType"}
+        options={mapperOptions}
+        handleChange={handleType}
+      />
     </div>
   );
 };

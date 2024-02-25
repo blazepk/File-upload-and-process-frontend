@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Papa from "papaparse";
 import { DocumentTextIcon } from "@heroicons/react/24/solid";
+import { tableContext } from "../context/TableDataContext";
 
 // Allowed extensions for input file
 const allowedExtensions = ["csv"];
@@ -14,6 +15,7 @@ type Props = {
 };
 
 const Uploader = ({ setHeaders }: Props) => {
+  const { setUploadData } = useContext<any>(tableContext);
   const [data, setData] = useState<TTableData[]>([]);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -40,6 +42,7 @@ const Uploader = ({ setHeaders }: Props) => {
         // console.log("Parsed CSV data:", result.data);
         setHeaders(result?.meta?.fields);
         setData(result?.data);
+        setUploadData(result.data);
       },
       header: true, // Assuming the first row contains headers
       skipEmptyLines: true,

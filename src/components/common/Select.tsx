@@ -1,3 +1,5 @@
+import { ChangeEventHandler } from "react";
+
 interface IOption {
   value: string;
   displayValue: string;
@@ -6,9 +8,10 @@ interface IOption {
 type Props = {
   label: string;
   options: IOption[] | undefined;
+  handleChange: ChangeEventHandler<HTMLSelectElement>;
 };
 
-function Select({ label, options }: Props) {
+function Select({ label, options, handleChange }: Props) {
   return (
     <div>
       {/* <label
@@ -19,11 +22,17 @@ function Select({ label, options }: Props) {
       </label> */}
       <select
         // id="fields"
+        onChange={handleChange}
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+        defaultValue={""}
       >
-        <option selected>{label}</option>
+        <option value="">{label}</option>
         {options?.map((item: IOption) => {
-          return <option value={item.value}>{item.displayValue}</option>;
+          return (
+            <option key={item.value} value={item.value}>
+              {item.displayValue}
+            </option>
+          );
         })}
       </select>
     </div>
