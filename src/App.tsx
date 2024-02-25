@@ -4,9 +4,11 @@ import Section from "./components/common/Section";
 import Uploader from "./components/Uploader";
 import Mapper from "./components/Mapper";
 import TableDataContext from "./context/TableDataContext";
+import GenerateSchema from "./components/GenerateSchema";
 
 function App() {
-  const [sharedHeaders, setSharedHeaders] = useState<any>(null);
+  const [sharedHeaders, setSharedHeaders] = useState<string[]>([]);
+  const [newHeaders, setNewHeaders] = useState<string[]>([]);
 
   return (
     <>
@@ -14,6 +16,10 @@ function App() {
       <TableDataContext>
         <Section>
           <Uploader setHeaders={setSharedHeaders} />
+          <GenerateSchema
+            setNewHeaders={setNewHeaders}
+            newHeaders={newHeaders}
+          />
           <Mapper sharedHeaders={sharedHeaders} />
         </Section>
       </TableDataContext>

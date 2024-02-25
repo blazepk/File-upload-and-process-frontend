@@ -7,8 +7,12 @@ type Props = {
 
 function TableDataContext({ children }: Props) {
   const [uploadData, setUploadData] = React.useState<any>();
+  const [newHeaderSchema, setNewHeaderSchema] = React.useState<string[]>([]);
+
   return (
-    <TableContext.Provider value={{ uploadData, setUploadData }}>
+    <TableContext.Provider
+      value={{ uploadData, setUploadData, newHeaderSchema, setNewHeaderSchema }}
+    >
       {children}
     </TableContext.Provider>
   );
