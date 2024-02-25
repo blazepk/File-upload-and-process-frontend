@@ -1,19 +1,26 @@
 import { useState } from "react";
 import Papa from "papaparse";
 import { DocumentTextIcon } from "@heroicons/react/24/solid";
-import classNames from "classnames";
 
 // Allowed extensions for input file
 const allowedExtensions = ["csv"];
 
-const Test = () => {
-  const [data, setData] = useState([]);
-  const [error, setError] = useState("");
-  const [file, setFile] = useState("");
+type TTableData = {
+  [key: string]: string;
+};
 
-  const handleFileChange = (e) => {
+type Props = {
+  setHeaders: any;
+};
+
+const Uploader = ({ setHeaders }: Props) => {
+  const [data, setData] = useState<TTableData[]>([]);
+  const [error, setError] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError("");
-    if (e.target.files.length) {
+    if (e?.target?.files?.length) {
       const inputFile = e.target.files[0];
       const fileExtension = inputFile?.type.split("/")[1];
       if (!allowedExtensions.includes(fileExtension)) {
@@ -26,23 +33,18 @@ const Test = () => {
 
   const handleParse = () => {
     if (!file) return setError("Enter a valid file");
-
-    const reader = new FileReader();
-    reader.onload = async ({ target }) => {
-      const csv = Papa.parse(target.result, {
-        header: true,
-      });
-      const parsedData = csv?.data;
-      const rows = Object.keys(parsedData[0]);
-
-      const columns = Object.values(parsedData[0]);
-      const res = rows.reduce((acc, e, i) => {
-        return [...acc, [[e], columns[i]]];
-      }, []);
-      console.log(res);
-      setData(res);
-    };
-    reader.readAsText(file);
+    Papa.parse<TTableData[]>(file, {
+      complete: (result: any) => {
+        // 'result.data' contains the parsed CSV data
+        // console.log("Parsed CSV :", result);
+        // console.log("Parsed CSV data:", result.data);
+        setHeaders(result?.meta?.fields);
+        setData(result?.data);
+      },
+      header: true, // Assuming the first row contains headers
+      skipEmptyLines: true,
+      dynamicTyping: true, // Automatically convert numeric values to numbers
+    });
   };
 
   return (
@@ -79,7 +81,9 @@ const Test = () => {
             <DocumentTextIcon className="text-gray-600 w-12 h-12 mx-auto" />
             <div className="mt-4 text-sm leading-6 text-gray-600">
               <p className="text-green-600 font-medium">File Uploaded.</p>
-              <p className="text-gray-600">Click on parse to refactor the file</p>
+              <p className="text-gray-600">
+                Click on parse to refactor the file
+              </p>
             </div>
           </div>
         )}
@@ -89,7 +93,7 @@ const Test = () => {
         <div className="flex space-x-4 items-center">
           <button
             onClick={() => {
-              setFile("");
+              setFile(null);
               setData([]);
               setError("");
             }}
@@ -108,16 +112,43 @@ const Test = () => {
           </button>
         </div>
       </div>
-      <div className="flex justify-center my-12">
-        {!error &&
-          data.map((e, i) => (
-            <div key={i}>
-              {e[0]}:{e[1]}
-            </div>
-          ))}
+      <div className="mt-4 overflow-x-auto">
+        {data.length > 0 && (
+          <table className="min-w-full border border-collapse border-gray-300">
+            <thead className="bg-gray-200">
+              <tr>
+                {Object.keys(data[0] || {}).map((header, index) => (
+                  <th
+                    key={index}
+                    className="py-2 px-4 border-b border-r font-semibold text-sm"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row: any, rowIndex: number) => (
+                <tr
+                  key={rowIndex}
+                  className={rowIndex % 2 === 0 ? "bg-gray-100" : ""}
+                >
+                  {Object.values(row).map((value: any, columnIndex) => (
+                    <td
+                      key={columnIndex}
+                      className="py-2 px-4 border-b border-r text-sm text-center"
+                    >
+                      {value}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 };
 
-export default Test;
+export default Uploader;
